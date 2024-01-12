@@ -1,6 +1,5 @@
 open Ppxlib
 
-let log = Printf.printf
 let tag = "config"
 
 let env =

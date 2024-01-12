@@ -20,7 +20,7 @@ https://github.com/leostera/riot/issues/new
 Contenxt: %s |}
        reason)
 
-let log = Printf.printf
+(* let log = Printf.printf *)
 
 module Lexer = struct
   type token =
@@ -36,7 +36,7 @@ module Lexer = struct
   let letter = [%sedlex.regexp? '_' | 'a' .. 'z' | 'A' .. 'Z']
   let ident = [%sedlex.regexp? letter, Star (letter | digit)]
 
-  let rec pp_one fmt (t : token) =
+  let pp_one fmt (t : token) =
     match t with
     | ATOM name -> Format.fprintf fmt "ATOM(%S)" name
     | STRING s -> Format.fprintf fmt "STRING(%S)" s
@@ -68,9 +68,10 @@ module Lexer = struct
         let atom = Sedlexing.Utf8.lexeme buf in
         token ~loc buf (ATOM atom :: acc)
     | eof -> acc
-    | _ -> 
+    | _ ->
         let char = Sedlexing.Utf8.lexeme buf in
-        failwith ~loc (Format.sprintf "Syntax error, invalid character: %S" char)
+        failwith ~loc
+          (Format.sprintf "Syntax error, invalid character: %S" char)
 
   and string ~loc buf ?(str = []) acc =
     match%sedlex buf with
@@ -129,10 +130,10 @@ module Parser = struct
 
   and do_parse ~loc tokens =
     match tokens with
-    | ATOM "any" :: LPARENS :: rest -> 
+    | ATOM "any" :: LPARENS :: rest ->
         let list, rest = parse_list ~loc rest in
         (Any list, rest)
-    | ATOM "all" :: LPARENS :: rest -> 
+    | ATOM "all" :: LPARENS :: rest ->
         let list, rest = parse_list ~loc rest in
         (All list, rest)
     | ATOM "not" :: LPARENS :: rest -> (
@@ -141,9 +142,9 @@ module Parser = struct
         | _ -> failwith ~loc "Not expressions must have a single parameter")
     | ATOM ("any" | "all" | "not") :: _ ->
         failwith ~loc "Forms any/all/not must parenthesize its arguments"
-    | LPARENS :: ATOM var :: EQ :: STRING s :: RPARENS ::rest ->
+    | LPARENS :: ATOM var :: EQ :: STRING s :: RPARENS :: rest ->
         (Pred { var; value = String s }, rest)
-    | LPARENS::ATOM var :: EQ :: NUMBER n :: RPARENS::rest ->
+    | LPARENS :: ATOM var :: EQ :: NUMBER n :: RPARENS :: rest ->
         (Pred { var; value = Number n }, rest)
     | ATOM var :: rest -> (Pred { var; value = String "true" }, rest)
     | _ ->
@@ -163,27 +164,24 @@ module Eval = struct
   open Parser
 
   let value_equal a b =
-    match a, b with
+    match (a, b) with
     | Number a1, Number a2 -> Int.equal a1 a2
     | String s1, String s2 -> String.equal s1 s2
     | _ -> false
 
-  let rec do_eval ~loc ~env (parsetree: Parser.parsetree) = 
+  let rec do_eval ~loc ~env (parsetree : Parser.parsetree) =
     match parsetree with
-| Parser.Any trees -> List.exists (do_eval ~loc ~env) trees
-| Parser.All trees -> List.for_all (do_eval ~loc ~env) trees
-| Parser.Not tree -> not (do_eval ~loc ~env tree)
-| Parser.Pred { var; value } -> 
-    match List.assoc_opt var env with
-    | Some actual -> value_equal actual value
-    | None -> false
-    
+    | Parser.Any trees -> List.exists (do_eval ~loc ~env) trees
+    | Parser.All trees -> List.for_all (do_eval ~loc ~env) trees
+    | Parser.Not tree -> not (do_eval ~loc ~env tree)
+    | Parser.Pred { var; value } -> (
+        match List.assoc_opt var env with
+        | Some actual -> value_equal actual value
+        | None -> false)
 
   let eval ~loc ~env str =
     let parsetree = Parser.parse ~loc str in
     do_eval ~loc ~env parsetree
-
-
 end
 
 let eval = Eval.eval

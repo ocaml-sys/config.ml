@@ -1,20 +1,9 @@
 open Ppxlib
-open Ast_helper
 open Cfg_lang
 
 let keyword fmt = Spices.(default |> fg (color "#00FF00") |> build) fmt
 let error fmt = Spices.(default |> fg (color "#FF0000") |> build) fmt
 let loc = Location.none
-
-let id name =
-  let longident = Location.{ loc; txt = Longident.parse name } in
-  Exp.ident longident
-
-let int n = Exp.constant (Const.int n)
-
-let ocaml str =
-  let lexbuf = Lexing.from_string ~with_positions:false str in
-  Parse.expression lexbuf
 
 let () =
   let test str expected =
@@ -38,10 +27,20 @@ let () =
   test "" [];
   test "not" [ ATOM "not" ];
   test "not any" [ ATOM "not"; ATOM "any" ];
-  test "(target_os = \"macos\")" [ LPARENS; ATOM "target_os"; EQ; STRING "macos"; RPARENS ];
+  test "(target_os = \"macos\")"
+    [ LPARENS; ATOM "target_os"; EQ; STRING "macos"; RPARENS ];
   test "any (macos)" [ ATOM "any"; LPARENS; ATOM "macos"; RPARENS ];
   test "any ((target_os = \"macos\"))"
-    [ ATOM "any"; LPARENS; LPARENS; ATOM "target_os"; EQ; STRING "macos"; RPARENS; RPARENS ];
+    [
+      ATOM "any";
+      LPARENS;
+      LPARENS;
+      ATOM "target_os";
+      EQ;
+      STRING "macos";
+      RPARENS;
+      RPARENS;
+    ];
   test "any (architecture = 2112)"
     [ ATOM "any"; LPARENS; ATOM "architecture"; EQ; NUMBER 2112; RPARENS ];
   test "any (target_os = \"macos\", another)"

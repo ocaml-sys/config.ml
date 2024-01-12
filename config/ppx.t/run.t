@@ -71,6 +71,8 @@
 
   $ dune clean
   $ dune exec ./main.exe
+  sys=unix
 
   $ dune clean
   $ target_os=windows target_arch=x86 dune exec ./main.exe
+  sys=win32
