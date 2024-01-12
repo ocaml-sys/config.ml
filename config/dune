@@ -1,0 +1,38 @@
+(library
+ (package config)
+ (name cfg)
+ (modules cfg)
+ (foreign_stubs
+  (language c)
+  (names config_stubs)
+  (flags
+   (:standard -O2))))
+
+(library
+ (package config)
+ (name cfg_lang)
+ (modules cfg_lang)
+ (preprocess
+  (pps sedlex.ppx ppxlib.metaquot))
+ (libraries compiler-libs ppxlib sedlex spices))
+
+(test
+ (package config)
+ (name cfg_lang_test)
+ (modules cfg_lang_test)
+ (preprocess
+  (pps ppxlib.metaquot))
+ (libraries cfg_lang))
+
+(library
+ (public_name config.ppx)
+ (name cfg_ppx)
+ (modules cfg_ppx)
+ (kind ppx_rewriter)
+ (libraries ppxlib cfg cfg_lang)
+ (preprocess
+  (pps ppxlib.metaquot)))
+
+(cram
+ (deps
+  (package config)))

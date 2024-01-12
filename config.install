@@ -1,0 +1,39 @@
+lib: [
+  "_build/install/default/lib/config/META"
+  "_build/install/default/lib/config/__private__/cfg/.public_cmi/cfg.cmi" {"__private__/cfg/.public_cmi/cfg.cmi"}
+  "_build/install/default/lib/config/__private__/cfg/.public_cmi/cfg.cmt" {"__private__/cfg/.public_cmi/cfg.cmt"}
+  "_build/install/default/lib/config/__private__/cfg/cfg.a" {"__private__/cfg/cfg.a"}
+  "_build/install/default/lib/config/__private__/cfg/cfg.cma" {"__private__/cfg/cfg.cma"}
+  "_build/install/default/lib/config/__private__/cfg/cfg.cmx" {"__private__/cfg/cfg.cmx"}
+  "_build/install/default/lib/config/__private__/cfg/cfg.cmxa" {"__private__/cfg/cfg.cmxa"}
+  "_build/install/default/lib/config/__private__/cfg/cfg.ml" {"__private__/cfg/cfg.ml"}
+  "_build/install/default/lib/config/__private__/cfg_lang/.public_cmi/cfg_lang.cmi" {"__private__/cfg_lang/.public_cmi/cfg_lang.cmi"}
+  "_build/install/default/lib/config/__private__/cfg_lang/.public_cmi/cfg_lang.cmt" {"__private__/cfg_lang/.public_cmi/cfg_lang.cmt"}
+  "_build/install/default/lib/config/__private__/cfg_lang/cfg_lang.a" {"__private__/cfg_lang/cfg_lang.a"}
+  "_build/install/default/lib/config/__private__/cfg_lang/cfg_lang.cma" {"__private__/cfg_lang/cfg_lang.cma"}
+  "_build/install/default/lib/config/__private__/cfg_lang/cfg_lang.cmx" {"__private__/cfg_lang/cfg_lang.cmx"}
+  "_build/install/default/lib/config/__private__/cfg_lang/cfg_lang.cmxa" {"__private__/cfg_lang/cfg_lang.cmxa"}
+  "_build/install/default/lib/config/__private__/cfg_lang/cfg_lang.ml" {"__private__/cfg_lang/cfg_lang.ml"}
+  "_build/install/default/lib/config/dune-package"
+  "_build/install/default/lib/config/opam"
+  "_build/install/default/lib/config/ppx/cfg_ppx.a" {"ppx/cfg_ppx.a"}
+  "_build/install/default/lib/config/ppx/cfg_ppx.cma" {"ppx/cfg_ppx.cma"}
+  "_build/install/default/lib/config/ppx/cfg_ppx.cmi" {"ppx/cfg_ppx.cmi"}
+  "_build/install/default/lib/config/ppx/cfg_ppx.cmt" {"ppx/cfg_ppx.cmt"}
+  "_build/install/default/lib/config/ppx/cfg_ppx.cmti" {"ppx/cfg_ppx.cmti"}
+  "_build/install/default/lib/config/ppx/cfg_ppx.cmx" {"ppx/cfg_ppx.cmx"}
+  "_build/install/default/lib/config/ppx/cfg_ppx.cmxa" {"ppx/cfg_ppx.cmxa"}
+  "_build/install/default/lib/config/ppx/cfg_ppx.ml" {"ppx/cfg_ppx.ml"}
+  "_build/install/default/lib/config/ppx/cfg_ppx.mli" {"ppx/cfg_ppx.mli"}
+]
+libexec: [
+  "_build/install/default/lib/config/__private__/cfg/cfg.cmxs" {"__private__/cfg/cfg.cmxs"}
+  "_build/install/default/lib/config/__private__/cfg_lang/cfg_lang.cmxs" {"__private__/cfg_lang/cfg_lang.cmxs"}
+  "_build/install/default/lib/config/ppx/cfg_ppx.cmxs" {"ppx/cfg_ppx.cmxs"}
+  "_build/install/default/lib/config/ppx/ppx.exe" {"ppx/ppx.exe"}
+]
+doc: [
+  "_build/install/default/doc/config/CHANGES.md"
+  "_build/install/default/doc/config/LICENSE.md"
+  "_build/install/default/doc/config/README.md"
+]
