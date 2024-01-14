@@ -8,36 +8,35 @@ CAMLprim value caml_config_target_os(value unit) {
   CAMLlocal1(os_string);
 
   const char* os =
-    // Windows Platform
     #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-      #if _WIN64
-          "windows"
-      #else
-          "windows"
+      "windows"
+
+    #elif __APPLE__
+      #include <TargetConditionals.h>
+      #if TARGET_OS_IPHONE
+        "ios"
+      #elif TARGET_OS_TV
+        "tvos"
+      #elif TARGET_OS_WATCH
+        "watchos"
+      #elif TARGET_OS_MAC
+        "macos"
       #endif
 
-    // Apple Platforms
-    #elif __APPLE__
-    #include <TargetConditionals.h>
-    #if TARGET_OS_IPHONE
-        "ios"
-    #elif TARGET_OS_TV
-        "tvos"
-    #elif TARGET_OS_WATCH
-        "watchos"
-    #elif TARGET_OS_MAC
-        "macos"
-#endif
+    #elif __FreeBSD__
+      "freebsd"
 
-    // Android Platform
+    #elif __NetBSD__
+      "netbsd"
+
     #elif __ANDROID__
-        "android"
+      "android"
 
-    // Linux Platform
     #elif __linux__
-        "linux"
+      "linux"
+
     #else
-        "unknown"
+      "unknown"
     #endif
 ;
 
