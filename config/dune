@@ -22,7 +22,7 @@
  (modules cfg_lang_test)
  (preprocess
   (pps ppxlib.metaquot))
- (libraries cfg_lang))
+ (libraries cfg_lang cfg))
 
 (library
  (public_name config.ppx)

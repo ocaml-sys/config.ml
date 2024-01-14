@@ -1,5 +1,20 @@
 (* conditional compilation with an attribute *)
 
+module Env = struct
+  let name = "gnu"
+end
+[@@config target_env = "gnu"]
+
+module Env = struct
+  let name = "musl"
+end
+[@@config target_env = "musl"]
+
+module Env = struct
+  let name = "unknown"
+end
+[@@config target_env = ""]
+
 module Sys = Sys_unix
 [@@config
   any

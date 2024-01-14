@@ -3,6 +3,30 @@
 #include <caml/alloc.h>
 #include <string.h>
 
+CAMLprim value caml_config_target_env(value unit) {
+  CAMLparam1(unit);
+  CAMLlocal1(env_string);
+
+  const char* env =
+    #if defined(__GLIBC__)
+      "gnu"
+
+    #elif __MUSL__
+      "musl"
+
+    #elif _MSC_VER
+      "msvc"
+
+    #else
+      ""
+    #endif
+;
+
+  env_string = caml_alloc_string(strlen(env));
+  memcpy((char*) String_val(env_string), env, strlen(env));
+  CAMLreturn(env_string);
+}
+
 CAMLprim value caml_config_target_os(value unit) {
   CAMLparam1(unit);
   CAMLlocal1(os_string);

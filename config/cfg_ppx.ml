@@ -11,6 +11,7 @@ let env =
   @ [
       ("target_os", String Cfg.target_os);
       ("target_arch", String Cfg.target_arch);
+      ("target_env", String Cfg.target_env);
     ]
 
 let apply_config stri =

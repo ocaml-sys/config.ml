@@ -234,3 +234,5 @@ any(  (target_os = "macos"),
     true;
 
   ()
+
+let () = Format.printf "%s %s %s" Cfg.target_arch Cfg.target_os Cfg.target_env
