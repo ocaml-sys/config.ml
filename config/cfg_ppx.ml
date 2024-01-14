@@ -11,14 +11,14 @@ let user_env =
 let env =
   user_env
   @ [
-    ("target_os", Cfg.target_os);
-    ("target_arch", Cfg.target_arch);
-    ("target_env", Cfg.target_env);
-  ]
+      ("target_os", Cfg.target_os);
+      ("target_arch", Cfg.target_arch);
+      ("target_env", Cfg.target_env);
+    ]
   |> List.sort_uniq (fun (k1, _) (k2, _) -> String.compare k1 k2)
 
 let () =
-  if Option.is_some (Sys.getenv_opt "CONFIG_DEBUG") then(
+  if Option.is_some (Sys.getenv_opt "CONFIG_DEBUG") then (
     Format.printf "Config PPX running with environment:\n\n%!";
     List.iter (fun (k, v) -> Format.printf "  %s = %S\r\n" k v) env;
     Format.printf "\n%!")

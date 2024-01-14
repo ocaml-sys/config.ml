@@ -11,11 +11,11 @@ CAMLprim value caml_config_target_env(value unit) {
     #if defined(__GLIBC__)
       "gnu"
 
-    #elif __MUSL__
-      "musl"
-
     #elif _MSC_VER
       "msvc"
+
+    #elif defined(__linux__) && !defined(__GLIBC__)
+      "musl"
 
     #else
       ""
