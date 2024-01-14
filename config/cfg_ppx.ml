@@ -2,17 +2,28 @@ open Ppxlib
 
 let tag = "config"
 
-let env =
-  let open Cfg_lang.Parser in
-  (Unix.environment () |> Array.to_list
+let user_env =
+  Unix.environment () |> Array.to_list
   |> List.map (fun kv ->
          let[@warning "-8"] (k :: v) = String.split_on_char '=' kv in
-         (k, String (String.concat "=" v))))
+         (k, String.concat "=" v))
+
+let env =
+  user_env
   @ [
-      ("target_os", String Cfg.target_os);
-      ("target_arch", String Cfg.target_arch);
-      ("target_env", String Cfg.target_env);
-    ]
+    ("target_os", Cfg.target_os);
+    ("target_arch", Cfg.target_arch);
+    ("target_env", Cfg.target_env);
+  ]
+  |> List.sort_uniq (fun (k1, _) (k2, _) -> String.compare k1 k2)
+
+let () =
+  if Option.is_some (Sys.getenv_opt "CONFIG_DEBUG") then(
+    Format.printf "Config PPX running with environment:\n\n%!";
+    List.iter (fun (k, v) -> Format.printf "  %s = %S\r\n" k v) env;
+    Format.printf "\n%!")
+
+let env = List.map (fun (k, v) -> (k, Cfg_lang.Parser.String v)) env
 
 let apply_config stri =
   try
