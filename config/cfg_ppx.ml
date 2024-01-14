@@ -25,23 +25,32 @@ let () =
 
 let env = List.map (fun (k, v) -> (k, Cfg_lang.Parser.String v)) env
 
+let should_keep_module attr =
+  let loc = attr.attr_loc in
+  match attr.attr_payload with
+  | PStr payload ->
+      let payload = Pprintast.string_of_structure payload in
+      (* NOTE(leostera): payloads begin with `;;` *)
+      let payload = String.sub payload 2 (String.length payload - 2) in
+      (* Printf.printf "\n\npayload: %S\n\n" payload; *)
+      if Cfg_lang.eval ~loc ~env payload then `keep else `drop
+  | _ -> failwith "invalid payload"
+
 let apply_config stri =
   try
     match stri.pstr_desc with
-    | Pstr_module { pmb_attributes = [ attr ]; _ } -> (
-        let loc = attr.attr_loc in
-        match attr.attr_payload with
-        | PStr payload ->
-            let payload = Pprintast.string_of_structure payload in
-            (* NOTE(leostera): payloads begin with `;;` *)
-            let payload = String.sub payload 2 (String.length payload - 2) in
-            (* Printf.printf "\n\npayload: %S\n\n" payload; *)
-            if Cfg_lang.eval ~loc ~env payload then Some stri else None
-        | _ -> Some stri)
+    | Pstr_module { pmb_attributes = [ attr ]; _ } ->
+        if should_keep_module attr = `keep then Some stri else None
     | _ -> Some stri
   with Cfg_lang.Error { loc; error } ->
     let ext = Location.error_extensionf ~loc "%s" error in
     Some (Ast_builder.Default.pstr_extension ~loc ext [])
 
-let impl str = List.filter_map apply_config str
-let () = Driver.register_transformation tag ~impl
+let preprocess_impl str =
+  match str with
+  | { pstr_desc = Pstr_attribute attr; _ } :: rest
+    when String.equal attr.attr_name.txt tag ->
+      if should_keep_module attr = `keep then rest else []
+  | _ -> List.filter_map apply_config str
+
+let () = Driver.register_transformation tag ~preprocess_impl

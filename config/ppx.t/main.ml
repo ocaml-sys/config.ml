@@ -1,5 +1,7 @@
 (* conditional compilation with an attribute *)
 
+module Whole_mod = Whole_mod
+
 module Env = struct
   let name = "gnu"
 end
