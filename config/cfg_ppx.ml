@@ -32,7 +32,7 @@ let should_keep_module attr =
       let payload = Pprintast.string_of_structure payload in
       (* NOTE(leostera): payloads begin with `;;` *)
       let payload = String.sub payload 2 (String.length payload - 2) in
-      (* Printf.printf "\n\npayload: %S\n\n" payload; *)
+      Printf.printf "\n\npayload: %S\n\n" payload;
       if Cfg_lang.eval ~loc ~env payload then `keep else `drop
   | _ -> failwith "invalid payload"
 
