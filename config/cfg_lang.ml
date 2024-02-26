@@ -146,10 +146,8 @@ module Parser = struct
         (Pred { var; value = String s }, rest)
     | LPARENS :: ATOM var :: EQ :: NUMBER n :: RPARENS :: rest ->
         (Pred { var; value = Number n }, rest)
-    | ATOM var :: EQ :: STRING s :: RPARENS :: [] ->
-       (Pred { var; value = String s}, [])
-    | ATOM var :: EQ :: NUMBER n :: RPARENS :: [] ->
-        (Pred { var; value = Number n }, [])
+    | [ ATOM var; EQ; STRING s; RPARENS ] -> (Pred { var; value = String s }, [])
+    | [ ATOM var; EQ; NUMBER n; RPARENS ] -> (Pred { var; value = Number n }, [])
     | ATOM var :: rest -> (Pred { var; value = String "true" }, rest)
     | _ ->
         failwith ~loc

@@ -25,23 +25,64 @@ let () =
 
 let env = List.map (fun (k, v) -> (k, Cfg_lang.Parser.String v)) env
 
-let should_keep_module attr =
-  let loc = attr.attr_loc in
-  match attr.attr_payload with
-  | PStr payload ->
-      let payload = Pprintast.string_of_structure payload in
-      (* NOTE(leostera): payloads begin with `;;` *)
-      let payload = String.sub payload 2 (String.length payload - 2) in
-      Printf.printf "\n\npayload: %S\n\n" payload;
-      if Cfg_lang.eval ~loc ~env payload then `keep else `drop
-  | _ -> failwith "invalid payload"
+let eval_attr attr =
+  if not (String.equal attr.attr_name.txt tag) then `keep
+  else
+    let loc = attr.attr_loc in
+    (* Printf.printf "\n\nattr name: %S\n\n" attr.attr_name.txt; *)
+    match attr.attr_payload with
+    | PStr payload ->
+        let payload = Pprintast.string_of_structure payload in
+        (* NOTE(leostera): payloads begin with `;;` *)
+        let payload = String.sub payload 2 (String.length payload - 2) in
+        (* Printf.printf "\n\npayload: %S\n\n" payload; *)
+        if Cfg_lang.eval ~loc ~env payload then `keep else `drop
+    | _ -> `keep
+
+let rec should_keep attrs =
+  match attrs with
+  | [] -> `keep
+  | attr :: attrs -> if eval_attr attr = `drop then `drop else should_keep attrs
+
+let rec should_keep_many list fn =
+  match list with
+  | [] -> `keep
+  | item :: list ->
+      if should_keep (fn item) = `drop then `drop else should_keep_many list fn
 
 let apply_config stri =
   try
     match stri.pstr_desc with
-    | Pstr_module { pmb_attributes = [ attr ]; _ } ->
-        if should_keep_module attr = `keep then Some stri else None
-    | _ -> Some stri
+    | Pstr_typext { ptyext_attributes = attrs; _ }
+    | Pstr_modtype { pmtd_attributes = attrs; _ }
+    | Pstr_open { popen_attributes = attrs; _ }
+    | Pstr_include { pincl_attributes = attrs; _ }
+    | Pstr_exception { ptyexn_attributes = attrs; _ }
+    | Pstr_primitive { pval_attributes = attrs; _ }
+    | Pstr_eval (_, attrs)
+    | Pstr_module { pmb_attributes = attrs; _ } ->
+        if should_keep attrs = `keep then Some stri else None
+    | Pstr_value (_, vbs) ->
+        if should_keep_many vbs (fun vb -> vb.pvb_attributes) = `keep then
+          Some stri
+        else None
+    | Pstr_type (_, tds) ->
+        if should_keep_many tds (fun td -> td.ptype_attributes) = `keep then
+          Some stri
+        else None
+    | Pstr_recmodule md ->
+        if should_keep_many md (fun md -> md.pmb_attributes) = `keep then
+          Some stri
+        else None
+    | Pstr_class cds ->
+        if should_keep_many cds (fun cd -> cd.pci_attributes) = `keep then
+          Some stri
+        else None
+    | Pstr_class_type ctds ->
+        if should_keep_many ctds (fun ctd -> ctd.pci_attributes) = `keep then
+          Some stri
+        else None
+    | Pstr_extension _ | Pstr_attribute _ -> Some stri
   with Cfg_lang.Error { loc; error } ->
     let ext = Location.error_extensionf ~loc "%s" error in
     Some (Ast_builder.Default.pstr_extension ~loc ext [])
@@ -50,7 +91,7 @@ let preprocess_impl str =
   match str with
   | { pstr_desc = Pstr_attribute attr; _ } :: rest
     when String.equal attr.attr_name.txt tag ->
-      if should_keep_module attr = `keep then rest else []
+      if eval_attr attr = `keep then rest else []
   | _ -> List.filter_map apply_config str
 
 let () = Driver.register_transformation tag ~preprocess_impl

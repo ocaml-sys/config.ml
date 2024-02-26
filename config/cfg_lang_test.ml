@@ -31,14 +31,7 @@ let () =
     [ LPARENS; ATOM "target_os"; EQ; STRING "macos"; RPARENS ];
   test "any (macos)" [ ATOM "any"; LPARENS; ATOM "macos"; RPARENS ];
   test "all (target_os = \"macos\")"
-    [
-      ATOM "all";
-      LPARENS;
-      ATOM "target_os";
-      EQ;
-      STRING "macos";
-      RPARENS;
-    ];
+    [ ATOM "all"; LPARENS; ATOM "target_os"; EQ; STRING "macos"; RPARENS ];
   test "any ((target_os = \"macos\"))"
     [
       ATOM "any";
@@ -146,10 +139,7 @@ let () =
     (Not (Pred { var = "target"; value = String "macos" }));
 
   test "all(target = \"macos\")"
-    (All
-       [
-         Pred { var = "target"; value = String "macos" };
-    ]);
+    (All [ Pred { var = "target"; value = String "macos" } ]);
 
   test "all((target = \"macos\"), (what = \"nope\"))"
     (All
