@@ -15,6 +15,7 @@ module Cond_value = Cond_value
 module Cond_type = Cond_type
 module Cond_recmod = Cond_recmod
 module Cond_class = Cond_class
+module E2e_libc = E2e_libc
 
 module Whole_mod = Whole_mod
 
