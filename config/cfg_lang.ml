@@ -146,6 +146,10 @@ module Parser = struct
         (Pred { var; value = String s }, rest)
     | LPARENS :: ATOM var :: EQ :: NUMBER n :: RPARENS :: rest ->
         (Pred { var; value = Number n }, rest)
+    | ATOM var :: EQ :: STRING s :: RPARENS :: [] ->
+       (Pred { var; value = String s}, [])
+    | ATOM var :: EQ :: NUMBER n :: RPARENS :: [] ->
+        (Pred { var; value = Number n }, [])
     | ATOM var :: rest -> (Pred { var; value = String "true" }, rest)
     | _ ->
         failwith ~loc
@@ -153,7 +157,7 @@ module Parser = struct
 
   and parse_list ~loc ?(acc = []) tokens =
     match tokens with
-    | [] -> failwith ~loc "Lists can't be empty"
+    | [] -> (List.rev acc, [])
     | COMMA :: RPARENS :: rest | RPARENS :: rest -> (List.rev acc, rest)
     | COMMA :: rest | rest ->
         let pred, rest = do_parse ~loc rest in
