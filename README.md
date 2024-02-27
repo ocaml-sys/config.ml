@@ -13,7 +13,7 @@ It can be used to conditionally include/exclude:
 * let bindings
 * includes
 * type definitions
-* constructors from variant types
+* constructors from variant types and polymorphic variants
 * fields from record types
 * and more
 
@@ -123,6 +123,12 @@ type favorite_bands =
   | Rush
   | Yes
   | KingCrimson [@config (likes_trumpets = true)]
+
+type has_published_album_recently = 
+  [ `nope
+  | `yes
+  | `maybe [@config (is_indecisive = true)]
+  ]
 ```
 
 ### Enabling/Disabling Record Fields

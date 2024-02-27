@@ -54,7 +54,34 @@ let apply_config_on_types (tds : type_declaration list) =
   List.filter_map
     (fun td ->
       match td with
-      | { ptype_kind = Ptype_abstract; _ } -> Some td
+      | {
+       ptype_kind = Ptype_abstract;
+       ptype_manifest =
+         Some
+           ({ ptyp_desc = Ptyp_variant (rows, closed_flag, labels); _ } as
+            manifest);
+       _;
+      } ->
+          let rows =
+            List.filter_map
+              (fun row ->
+                if should_keep row.prf_attributes = `keep then Some row
+                else None)
+              rows
+          in
+
+          if rows = [] then None
+          else
+            Some
+              {
+                td with
+                ptype_manifest =
+                  Some
+                    {
+                      manifest with
+                      ptyp_desc = Ptyp_variant (rows, closed_flag, labels);
+                    };
+              }
       | { ptype_kind = Ptype_variant cstrs; _ } ->
           let cstrs =
             List.filter_map
@@ -77,7 +104,7 @@ let apply_config_on_types (tds : type_declaration list) =
 
           if labels = [] then None
           else Some { td with ptype_kind = Ptype_record labels }
-      | { ptype_kind = Ptype_open; _ } -> Some td)
+      | _ -> Some td)
     tds
 
 let apply_config stri =
