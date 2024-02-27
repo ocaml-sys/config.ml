@@ -6,6 +6,7 @@
 * Support conditionally disabling all structure-items
 * Support conditionally disabling variant constructors and record fields
 * Add better docs for the Config language, and a small cookbook
+* Support `cfg` and `config` for use in Melange v3 and future version
 
 ## 0.0.1
 

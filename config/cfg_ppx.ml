@@ -1,6 +1,8 @@
 open Ppxlib
 
-let tag = "config"
+let tag = "cfg"
+let short_tag = "config"
+let is_config_tag str = String.equal str tag || String.equal str short_tag
 
 let user_env =
   Unix.environment () |> Array.to_list
@@ -26,7 +28,7 @@ let () =
 let env = List.map (fun (k, v) -> (k, Cfg_lang.Parser.String v)) env
 
 let eval_attr attr =
-  if not (String.equal attr.attr_name.txt tag) then `keep
+  if not (is_config_tag attr.attr_name.txt) then `keep
   else
     let loc = attr.attr_loc in
     (* Printf.printf "\n\nattr name: %S\n\n" attr.attr_name.txt; *)
@@ -188,15 +190,17 @@ let apply_config_on_signature_item sigi =
 let preprocess_impl str =
   match str with
   | { pstr_desc = Pstr_attribute attr; _ } :: rest
-    when String.equal attr.attr_name.txt tag ->
+    when is_config_tag attr.attr_name.txt ->
       if eval_attr attr = `keep then rest else []
   | _ -> List.filter_map apply_config_on_structure_item str
 
 let preprocess_intf sigi =
   match sigi with
   | { psig_desc = Psig_attribute attr; _ } :: rest
-    when String.equal attr.attr_name.txt tag ->
+    when is_config_tag attr.attr_name.txt ->
       if eval_attr attr = `keep then rest else []
   | _ -> List.filter_map apply_config_on_signature_item sigi
 
-let () = Driver.register_transformation tag ~preprocess_impl ~preprocess_intf
+let () =
+  Driver.register_transformation tag ~aliases:[ short_tag ] ~preprocess_impl
+    ~preprocess_intf
