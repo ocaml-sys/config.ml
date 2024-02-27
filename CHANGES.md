@@ -1,5 +1,12 @@
 # Changes
 
+## 0.0.2
+
+* Fix single var configuration failing – thanks @metame 👏 
+* Support conditionally disabling all structure-items
+* Support conditionally disabling variant constructors and record fields
+* Add better docs for the Config language, and a small cookbook
+
 ## 0.0.1
 
 Initial release with support for:

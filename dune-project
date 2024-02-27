@@ -7,7 +7,7 @@
 (cram enable)
 
 (source
- (github leostera/config.ml))
+ (github ocaml-sys/config.ml))
 
 (authors "Leandro Ostera <leandro@abstractmachines.dev>")
 
