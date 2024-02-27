@@ -107,7 +107,7 @@ let apply_config_on_types (tds : type_declaration list) =
       | _ -> Some td)
     tds
 
-let apply_config stri =
+let apply_config_on_structure_item stri =
   try
     match stri.pstr_desc with
     | Pstr_typext { ptyext_attributes = attrs; _ }
@@ -145,11 +145,58 @@ let apply_config stri =
     let ext = Location.error_extensionf ~loc "%s" error in
     Some (Ast_builder.Default.pstr_extension ~loc ext [])
 
+let apply_config_on_signature_item sigi =
+  try
+    match sigi.psig_desc with
+    | Psig_typext { ptyext_attributes = attrs; _ }
+    | Psig_modtype { pmtd_attributes = attrs; _ }
+    | Psig_open { popen_attributes = attrs; _ }
+    | Psig_include { pincl_attributes = attrs; _ }
+    | Psig_exception { ptyexn_attributes = attrs; _ }
+    | Psig_value { pval_attributes = attrs; _ }
+    | Psig_modtypesubst { pmtd_attributes = attrs; _ }
+    | Psig_modsubst { pms_attributes = attrs; _ }
+    | Psig_module { pmd_attributes = attrs; _ } ->
+        if should_keep attrs = `keep then Some sigi else None
+    | Psig_typesubst tds ->
+        if should_keep_many tds (fun td -> td.ptype_attributes) = `keep then
+          let tds = apply_config_on_types tds in
+          Some { sigi with psig_desc = Psig_typesubst tds }
+        else None
+    | Psig_type (recflag, tds) ->
+        if should_keep_many tds (fun td -> td.ptype_attributes) = `keep then
+          let tds = apply_config_on_types tds in
+          Some { sigi with psig_desc = Psig_type (recflag, tds) }
+        else None
+    | Psig_recmodule md ->
+        if should_keep_many md (fun md -> md.pmd_attributes) = `keep then
+          Some sigi
+        else None
+    | Psig_class cds ->
+        if should_keep_many cds (fun cd -> cd.pci_attributes) = `keep then
+          Some sigi
+        else None
+    | Psig_class_type ctds ->
+        if should_keep_many ctds (fun ctd -> ctd.pci_attributes) = `keep then
+          Some sigi
+        else None
+    | Psig_extension _ | Psig_attribute _ -> Some sigi
+  with Cfg_lang.Error { loc; error } ->
+    let ext = Location.error_extensionf ~loc "%s" error in
+    Some (Ast_builder.Default.psig_extension ~loc ext [])
+
 let preprocess_impl str =
   match str with
   | { pstr_desc = Pstr_attribute attr; _ } :: rest
     when String.equal attr.attr_name.txt tag ->
       if eval_attr attr = `keep then rest else []
-  | _ -> List.filter_map apply_config str
+  | _ -> List.filter_map apply_config_on_structure_item str
 
-let () = Driver.register_transformation tag ~preprocess_impl
+let preprocess_intf sigi =
+  match sigi with
+  | { psig_desc = Psig_attribute attr; _ } :: rest
+    when String.equal attr.attr_name.txt tag ->
+      if eval_attr attr = `keep then rest else []
+  | _ -> List.filter_map apply_config_on_signature_item sigi
+
+let () = Driver.register_transformation tag ~preprocess_impl ~preprocess_intf
