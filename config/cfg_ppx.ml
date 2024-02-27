@@ -50,6 +50,36 @@ let rec should_keep_many list fn =
   | item :: list ->
       if should_keep (fn item) = `drop then `drop else should_keep_many list fn
 
+let apply_config_on_types (tds : type_declaration list) =
+  List.filter_map
+    (fun td ->
+      match td with
+      | { ptype_kind = Ptype_abstract; _ } -> Some td
+      | { ptype_kind = Ptype_variant cstrs; _ } ->
+          let cstrs =
+            List.filter_map
+              (fun cstr ->
+                if should_keep cstr.pcd_attributes = `keep then Some cstr
+                else None)
+              cstrs
+          in
+
+          if cstrs = [] then None
+          else Some { td with ptype_kind = Ptype_variant cstrs }
+      | { ptype_kind = Ptype_record labels; _ } ->
+          let labels =
+            List.filter_map
+              (fun label ->
+                if should_keep label.pld_attributes = `keep then Some label
+                else None)
+              labels
+          in
+
+          if labels = [] then None
+          else Some { td with ptype_kind = Ptype_record labels }
+      | { ptype_kind = Ptype_open; _ } -> Some td)
+    tds
+
 let apply_config stri =
   try
     match stri.pstr_desc with
@@ -66,9 +96,10 @@ let apply_config stri =
         if should_keep_many vbs (fun vb -> vb.pvb_attributes) = `keep then
           Some stri
         else None
-    | Pstr_type (_, tds) ->
+    | Pstr_type (recflag, tds) ->
         if should_keep_many tds (fun td -> td.ptype_attributes) = `keep then
-          Some stri
+          let tds = apply_config_on_types tds in
+          Some { stri with pstr_desc = Pstr_type (recflag, tds) }
         else None
     | Pstr_recmodule md ->
         if should_keep_many md (fun md -> md.pmb_attributes) = `keep then
