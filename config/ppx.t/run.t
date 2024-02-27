@@ -31,7 +31,6 @@
   module Cond_type_record_field = Cond_type_record_field
   module Cond_recmod = Cond_recmod
   module Cond_class = Cond_class
-  module E2e_libc = E2e_libc
   module Whole_mod = Whole_mod
   module Sys = Sys_unix[@@config
                          any
@@ -74,7 +73,6 @@
   module Cond_type_record_field = Cond_type_record_field
   module Cond_recmod = Cond_recmod
   module Cond_class = Cond_class
-  module E2e_libc = E2e_libc
   module Whole_mod = Whole_mod
   module Sys = Sys_win32[@@config
                           all ((target_os = "windows"), (target_arch = "x86"))]
@@ -114,7 +112,6 @@
   module Cond_type_record_field = Cond_type_record_field
   module Cond_recmod = Cond_recmod
   module Cond_class = Cond_class
-  module E2e_libc = E2e_libc
   module Whole_mod = Whole_mod
   module Sys = Sys_win64[@@config
                           all ((target_os = "windows"), (target_arch = "arm"))]
