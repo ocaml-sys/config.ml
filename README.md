@@ -135,6 +135,14 @@ type user = {
 }
 ```
 
+### Enabling/Disabling entire Modules
+
+```ocaml
+[@@@config (should_include = "no")]
+
+let do_not_include_me = failwith "oh no"
+```
+
 ## Contributing
 
 Currently `config` relies on C preprocessor definitions to detect different
