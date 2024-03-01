@@ -136,11 +136,11 @@ module Parser = struct
     | ATOM "all" :: LPARENS :: rest ->
         let list, rest = parse_list ~loc rest in
         (All list, rest)
-    | ATOM "not" :: LPARENS :: rest -> (
+    | ATOM "not" :: LPARENS :: rest | ATOM "not" :: rest -> (
         match do_parse ~loc rest with
         | pred, RPARENS :: rest -> (Not pred, rest)
-        | _ -> failwith ~loc "Not expressions must have a single parameter")
-    | ATOM ("any" | "all" | "not") :: _ ->
+        | pred, rest -> (Not pred, rest))
+    | ATOM ("any" | "all") :: _ ->
         failwith ~loc "Forms any/all/not must parenthesize its arguments"
     | LPARENS :: ATOM var :: EQ :: STRING s :: RPARENS :: rest ->
         (Pred { var; value = String s }, rest)

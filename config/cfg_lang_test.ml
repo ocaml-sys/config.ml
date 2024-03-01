@@ -137,6 +137,8 @@ let () =
   test "(target = \"macos\")" (Pred { var = "target"; value = String "macos" });
   test "not((target = \"macos\"))"
     (Not (Pred { var = "target"; value = String "macos" }));
+  test "not(target = \"macos\")"
+    (Not (Pred { var = "target"; value = String "macos" }));
 
   test "all(target = \"macos\")"
     (All [ Pred { var = "target"; value = String "macos" } ]);
@@ -216,6 +218,8 @@ let () =
   test "test" [ ("test", String "true") ] true;
   test "not(test)" [ ("test", String "true") ] false;
   test "not(test)" [ ("test", String "false") ] true;
+  test "not((test=\"true\"))" [ ("test", String "false") ] true;
+  test "not(test=\"true\")" [ ("test", String "false") ] true;
   test "(name = \"rush\")" [ ("name", String "rush") ] true;
   test "(album = 2112)" [ ("album", Number 2112) ] true;
   test "any((album = 2113), (name =\"rush\"))" [ ("album", Number 2113) ] true;
