@@ -133,6 +133,7 @@ let () =
 
   test "test" (Pred { var = "test"; value = String "true" });
   test "not(test)" (Not (Pred { var = "test"; value = String "true" }));
+  test "not test" (Not (Pred { var = "test"; value = String "true" }));
 
   test "(target = \"macos\")" (Pred { var = "target"; value = String "macos" });
   test "not((target = \"macos\"))"
@@ -216,6 +217,8 @@ let () =
 
   test "test" [ ("test", String "false") ] false;
   test "test" [ ("test", String "true") ] true;
+  test "not test" [ ("test", String "true") ] false;
+  test "not test" [ ("test", String "false") ] true;
   test "not(test)" [ ("test", String "true") ] false;
   test "not(test)" [ ("test", String "false") ] true;
   test "not((test=\"true\"))" [ ("test", String "false") ] true;
