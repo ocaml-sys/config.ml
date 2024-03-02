@@ -52,5 +52,5 @@ module Sys = Sys_win32
 module Sys = Sys_win64
 [@@config all (target_os = "windows", target_arch = "arm")]
 
-let () = Printf.printf "sys=%s" Sys.name
+let () = Printf.printf "sys=%s env=%s" Sys.name Env.name
 (* will print "sys=unix" on my mac! *)

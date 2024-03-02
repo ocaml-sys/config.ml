@@ -32,13 +32,14 @@
   module Cond_recmod = Cond_recmod
   module Cond_class = Cond_class
   module Whole_mod = Whole_mod
+  module Env = struct let name = "unknown" end[@@config target_env = ""]
   module Sys = Sys_unix[@@config
                          any
                            ((target_os = "macos"), (target_os = "ios"),
                              (target_os = "watchos"), (target_os = "tvos"),
                              (target_os = "freebsd"), (target_os = "netbsd"),
                              (target_os = "linux"))]
-  let () = Printf.printf "sys=%s" Sys.name
+  let () = Printf.printf "sys=%s env=%s" Sys.name Env.name
   $ dune clean
   $ target_os=windows target_arch=x86 dune describe pp main.ml
   [@@@ocaml.ppx.context
@@ -74,9 +75,10 @@
   module Cond_recmod = Cond_recmod
   module Cond_class = Cond_class
   module Whole_mod = Whole_mod
+  module Env = struct let name = "unknown" end[@@config target_env = ""]
   module Sys = Sys_win32[@@config
                           all ((target_os = "windows"), (target_arch = "x86"))]
-  let () = Printf.printf "sys=%s" Sys.name
+  let () = Printf.printf "sys=%s env=%s" Sys.name Env.name
 
   $ dune clean
   $ target_os=windows target_arch=arm dune describe pp main.ml
@@ -113,17 +115,18 @@
   module Cond_recmod = Cond_recmod
   module Cond_class = Cond_class
   module Whole_mod = Whole_mod
+  module Env = struct let name = "unknown" end[@@config target_env = ""]
   module Sys = Sys_win64[@@config
                           all ((target_os = "windows"), (target_arch = "arm"))]
-  let () = Printf.printf "sys=%s" Sys.name
+  let () = Printf.printf "sys=%s env=%s" Sys.name Env.name
 
   $ dune clean
   $ dune exec ./main.exe
-  sys=unix
+  sys=unix env=unknown
 
   $ dune clean
   $ target_os=windows target_arch=x86 dune exec ./main.exe
-  sys=win32
+  sys=win32 env=unknown
 
   $ dune clean
   $ dune build
@@ -147,3 +150,4 @@
       unsafe_string = false;
       cookies = []
     }]
+  external foo : unit -> int = "made_up_call"

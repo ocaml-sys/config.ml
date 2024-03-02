@@ -27,6 +27,7 @@ let () =
   test "" [];
   test "not" [ ATOM "not" ];
   test "not any" [ ATOM "not"; ATOM "any" ];
+  test "target_os = \"macos\"" [ ATOM "target_os"; EQ; STRING "macos" ];
   test "(target_os = \"macos\")"
     [ LPARENS; ATOM "target_os"; EQ; STRING "macos"; RPARENS ];
   test "any (macos)" [ ATOM "any"; LPARENS; ATOM "macos"; RPARENS ];
@@ -133,7 +134,7 @@ let () =
 
   test "test" (Pred { var = "test"; value = String "true" });
   test "not(test)" (Not (Pred { var = "test"; value = String "true" }));
-
+  test "target = \"macos\"" (Pred { var = "target"; value = String "macos" });
   test "(target = \"macos\")" (Pred { var = "target"; value = String "macos" });
   test "not((target = \"macos\"))"
     (Not (Pred { var = "target"; value = String "macos" }));
@@ -216,6 +217,8 @@ let () =
   test "test" [ ("test", String "true") ] true;
   test "not(test)" [ ("test", String "true") ] false;
   test "not(test)" [ ("test", String "false") ] true;
+  test "name = \"rush\"" [ ("name", String "rush") ] true;
+  test "name = \"rush\"" [ ("name", String "mush") ] false;
   test "(name = \"rush\")" [ ("name", String "rush") ] true;
   test "(album = 2112)" [ ("album", Number 2112) ] true;
   test "any((album = 2113), (name =\"rush\"))" [ ("album", Number 2113) ] true;
