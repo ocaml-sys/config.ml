@@ -33,12 +33,9 @@ let eval_attr attr =
     let loc = attr.attr_loc in
     (* Printf.printf "\n\nattr name: %S\n\n" attr.attr_name.txt; *)
     match attr.attr_payload with
-    | PStr payload ->
-        let payload = Pprintast.string_of_structure payload in
-        (* NOTE(leostera): payloads begin with `;;` *)
-        let payload = String.sub payload 2 (String.length payload - 2) in
-        (* Printf.printf "\n\npayload: %S\n\n" payload; *)
-        if Cfg_lang.eval ~loc ~env payload then `keep else `drop
+    | PStr [ { pstr_desc = Pstr_eval (e, []); _ } ] ->
+        let e = Pprintast.string_of_expression e in
+        if Cfg_lang.eval ~loc ~env e then `keep else `drop
     | _ -> `keep
 
 let rec should_keep attrs =
