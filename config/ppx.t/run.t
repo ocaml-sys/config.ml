@@ -121,18 +121,18 @@
   let () = Printf.printf "sys=%s env=%s" Sys.name Env.name
 
   $ dune clean
-  $ dune exec ./main.exe
+  $ value=1 dune exec ./main.exe
   sys=unix env=unknown
 
   $ dune clean
-  $ target_os=windows target_arch=x86 dune exec ./main.exe
+  $ value=1 target_os=windows target_arch=x86 dune exec ./main.exe
   sys=win32 env=unknown
 
   $ dune clean
-  $ dune build
+  $ value=1 dune build
 
   $ dune clean
-  $ target_os=madeup dune describe pp whole_mod.ml
+  $ value=1 target_os=madeup dune describe pp whole_mod.ml
   [@@@ocaml.ppx.context
     {
       tool_name = "ppx_driver";
