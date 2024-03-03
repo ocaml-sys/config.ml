@@ -22,79 +22,7 @@ Contenxt: %s |}
 
 (* let log = Printf.printf *)
 
-module Lexer = struct
-  type token =
-    | ATOM of string
-    | STRING of string
-    | NUMBER of int
-    | LPARENS
-    | EQ
-    | RPARENS
-    | COMMA
-
-  let digit = [%sedlex.regexp? Plus '0' .. '9']
-  let letter = [%sedlex.regexp? '_' | 'a' .. 'z' | 'A' .. 'Z']
-  let ident = [%sedlex.regexp? letter, Star (letter | digit)]
-
-  let pp_one fmt (t : token) =
-    match t with
-    | ATOM name -> Format.fprintf fmt "ATOM(%S)" name
-    | STRING s -> Format.fprintf fmt "STRING(%S)" s
-    | NUMBER n -> Format.fprintf fmt "NUMBER(%d)" n
-    | RPARENS -> Format.fprintf fmt "RPARENS"
-    | LPARENS -> Format.fprintf fmt "LPARENS"
-    | EQ -> Format.fprintf fmt "EQ"
-    | COMMA -> Format.fprintf fmt "COMMA"
-
-  let pp fmt t =
-    Format.fprintf fmt "[\r\n  ";
-    Format.pp_print_list
-      ~pp_sep:(fun fmt () -> Format.fprintf fmt ";\r\n  ")
-      pp_one fmt t;
-    Format.fprintf fmt "\r\n]\r\n"
-
-  let rec token ~loc buf (acc : token list) =
-    match%sedlex buf with
-    | white_space | "\n" | "\r" -> token ~loc buf acc
-    | ")" -> token ~loc buf (RPARENS :: acc)
-    | "(" -> token ~loc buf (LPARENS :: acc)
-    | "=" -> token ~loc buf (EQ :: acc)
-    | "," -> token ~loc buf (COMMA :: acc)
-    | digit ->
-        let num = Sedlexing.Utf8.lexeme buf in
-        token ~loc buf (NUMBER (Int64.of_string num |> Int64.to_int) :: acc)
-    | "\"" -> string ~loc buf acc
-    | ident ->
-        let atom = Sedlexing.Utf8.lexeme buf in
-        token ~loc buf (ATOM atom :: acc)
-    | eof -> acc
-    | _ ->
-        let char = Sedlexing.Utf8.lexeme buf in
-        failwith ~loc
-          (Format.sprintf "Syntax error, invalid character: %S" char)
-
-  and string ~loc buf ?(str = []) acc =
-    match%sedlex buf with
-    | "\"" ->
-        let str = List.rev str |> String.concat "" in
-        (* log "%s\"%!" str; *)
-        token ~loc buf (STRING str :: acc)
-    | "\\r" -> string ~loc buf ~str:("\r" :: str) acc
-    | "\\n" -> string ~loc buf ~str:("\n" :: str) acc
-    | any ->
-        let ident = Sedlexing.Utf8.lexeme buf in
-        (* log "%s%!" ident; *)
-        string ~loc buf ~str:(ident :: str) acc
-    | _ -> failwith ~loc "unsupported character in string"
-
-  let read ~loc str =
-    let lexbuf = Sedlexing.Utf8.from_string str in
-    token ~loc lexbuf [] |> List.rev
-end
-
 module Parser = struct
-  open Lexer
-
   type value = Number of int | String of string
 
   type parsetree =
@@ -123,43 +51,62 @@ module Parser = struct
       pp fmt parts;
     Format.fprintf fmt "\r\n]\r\n"
 
-  let rec parse ~loc str =
-    let tokens = Lexer.read ~loc str in
-    let tree, _rest = do_parse ~loc tokens in
-    tree
+  module Exp = struct
+    let id = function
+      | { pexp_desc = Pexp_ident { txt = Lident "any"; _ }; _ } -> `any
+      | { pexp_desc = Pexp_ident { txt = Lident "all"; _ }; _ } -> `all
+      | { pexp_desc = Pexp_ident { txt = Lident "not"; _ }; _ } -> `not
+      | { pexp_desc = Pexp_ident { txt = Lident "="; _ }; _ } -> `eq
+      | _ -> `invalid
 
-  and do_parse ~loc tokens =
-    match tokens with
-    | ATOM "any" :: LPARENS :: rest ->
-        let list, rest = parse_list ~loc rest in
-        (Any list, rest)
-    | ATOM "all" :: LPARENS :: rest ->
-        let list, rest = parse_list ~loc rest in
-        (All list, rest)
-    | ATOM "not" :: LPARENS :: rest -> (
-        match do_parse ~loc rest with
-        | pred, RPARENS :: rest -> (Not pred, rest)
-        | _ -> failwith ~loc "Not expressions must have a single parameter")
-    | ATOM ("any" | "all" | "not") :: _ ->
-        failwith ~loc "Forms any/all/not must parenthesize its arguments"
-    | LPARENS :: ATOM var :: EQ :: STRING s :: RPARENS :: rest ->
-        (Pred { var; value = String s }, rest)
-    | LPARENS :: ATOM var :: EQ :: NUMBER n :: RPARENS :: rest ->
-        (Pred { var; value = Number n }, rest)
-    | [ ATOM var; EQ; STRING s; RPARENS ] -> (Pred { var; value = String s }, [])
-    | [ ATOM var; EQ; NUMBER n; RPARENS ] -> (Pred { var; value = Number n }, [])
-    | ATOM var :: rest -> (Pred { var; value = String "true" }, rest)
-    | _ ->
+    let arg_list loc = function
+      | [ (Nolabel, { pexp_desc = Pexp_tuple args; _ }) ] -> args
+      | [ (Nolabel, arg) ] -> [ arg ]
+      | _ -> failwith ~loc "Forms any/all/not must parenthesize its arguments"
+
+    let one_arg loc = function
+      | [ (Nolabel, { pexp_desc = Pexp_tuple _; _ }) ] ->
+          failwith ~loc "Not expressions must have a single parameter"
+      | [ (Nolabel, arg) ] -> arg
+      | _ -> failwith ~loc "Forms any/all/not must parenthesize its arguments"
+
+    let var loc = function
+      | Nolabel, { pexp_desc = Pexp_ident { txt = Lident var; _ }; _ } -> var
+      | _ -> failwith ~loc (Format.sprintf "Expected identifier")
+
+    let value loc = function
+      | Nolabel, { pexp_desc = Pexp_constant (Pconst_integer (i, _)); _ } ->
+          Number (int_of_string i)
+      | Nolabel, { pexp_desc = Pexp_constant (Pconst_string (s, _, _)); _ } ->
+          String s
+      | ( Nolabel,
+          { pexp_desc = Pexp_construct ({ txt = Lident "true"; _ }, None); _ } )
+        ->
+          String "true"
+      | _ -> failwith ~loc (Format.sprintf "Expected int, string or bool value")
+
+    let rec parse ~loc (exp : expression) =
+      let fail () =
         failwith ~loc
-          (Format.asprintf "Invalid sequence of tokens: %a" Lexer.pp tokens)
+          (Format.asprintf "Invalid expression: %a" Pprintast.expression exp)
+      in
+      match exp.pexp_desc with
+      | Pexp_apply (fn, args) -> (
+          match id fn with
+          | `any -> Any (List.map (parse ~loc) (arg_list loc args))
+          | `all -> All (List.map (parse ~loc) (arg_list loc args))
+          | `not -> Not (parse ~loc (one_arg loc args))
+          | `eq -> (
+              match args with
+              | [ x; y ] -> Pred { var = var loc x; value = value loc y }
+              | _ -> fail ())
+          | `invalid -> fail ())
+      | Pexp_ident { txt = Lident var; _ } ->
+          Pred { var; value = String "true" }
+      | _ -> fail ()
+  end
 
-  and parse_list ~loc ?(acc = []) tokens =
-    match tokens with
-    | [] -> (List.rev acc, [])
-    | COMMA :: RPARENS :: rest | RPARENS :: rest -> (List.rev acc, rest)
-    | COMMA :: rest | rest ->
-        let pred, rest = do_parse ~loc rest in
-        parse_list ~loc rest ~acc:(pred :: acc)
+  let parse = Exp.parse
 end
 
 module Eval = struct
@@ -181,8 +128,8 @@ module Eval = struct
         | Some actual -> value_equal actual value
         | None -> false)
 
-  let eval ~loc ~env str =
-    let parsetree = Parser.parse ~loc str in
+  let eval ~loc ~env exp =
+    let parsetree = Parser.parse ~loc exp in
     do_eval ~loc ~env parsetree
 end
 
