@@ -23,7 +23,7 @@ module Whole_mod = Whole_mod
 module Env = struct
   let name = "gnu"
 end
-[@@config target_env = "gnu"]
+[@@cfg target_env = "gnu"]
 
 module Env = struct
   let name = "musl"

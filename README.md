@@ -52,11 +52,11 @@ And add it to your dune files:
   (preprocess (pps config.ppx)))
 ```
 
-And tag your values with the `@@config` attribute:
+And tag your values with the `@@config` or `@@cfg` attribute:
 
 ```ocaml
 module A = A_unix [@@config any(target_os = "macos", target_os = "linux")]
-module A = A_win32 [@@config any(target_os = "windows")]
+module A = A_win32 [@@cfg any(target_os = "windows")]
 ```
 
 ## The Config Language

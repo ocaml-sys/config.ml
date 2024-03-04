@@ -10,16 +10,6 @@ exception Error of error
 
 let failwith ~loc error = raise (Error { loc; error = error ^ "\n" })
 
-let bug ~loc reason =
-  failwith ~loc
-    (Format.sprintf
-       {|Oops! This is a bug. We should never get here, please file an issue here \
-
-https://github.com/leostera/riot/issues/new
-
-Contenxt: %s |}
-       reason)
-
 (* let log = Printf.printf *)
 
 module Parser = struct
