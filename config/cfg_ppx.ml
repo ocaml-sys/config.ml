@@ -35,6 +35,7 @@ let eval_attr attr =
     match attr.attr_payload with
     | PStr [ { pstr_desc = Pstr_eval (e, []); _ } ] ->
         let e = Pprintast.string_of_expression e in
+        (* Printf.printf "\n\npayload: %S\n\n" payload; *)
         if Cfg_lang.eval ~loc ~env e then `keep else `drop
     | _ -> `keep
 
