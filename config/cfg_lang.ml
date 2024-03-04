@@ -52,13 +52,6 @@ module Parser = struct
     Format.fprintf fmt "\r\n]\r\n"
 
   module Exp = struct
-    let id = function
-      | { pexp_desc = Pexp_ident { txt = Lident "any"; _ }; _ } -> `any
-      | { pexp_desc = Pexp_ident { txt = Lident "all"; _ }; _ } -> `all
-      | { pexp_desc = Pexp_ident { txt = Lident "not"; _ }; _ } -> `not
-      | { pexp_desc = Pexp_ident { txt = Lident "="; _ }; _ } -> `eq
-      | _ -> `invalid
-
     let arg_list loc = function
       | [ (Nolabel, { pexp_desc = Pexp_tuple args; _ }) ] -> args
       | [ (Nolabel, arg) ] -> [ arg ]
@@ -79,10 +72,7 @@ module Parser = struct
           Number (int_of_string i)
       | Nolabel, { pexp_desc = Pexp_constant (Pconst_string (s, _, _)); _ } ->
           String s
-      | ( Nolabel,
-          { pexp_desc = Pexp_construct ({ txt = Lident "true"; _ }, None); _ } )
-        ->
-          String "true"
+      | Nolabel, [%expr true] -> String "true"
       | _ -> failwith ~loc (Format.sprintf "Expected int, string or bool value")
 
     let rec parse ~loc (exp : expression) =
@@ -92,15 +82,15 @@ module Parser = struct
       in
       match exp.pexp_desc with
       | Pexp_apply (fn, args) -> (
-          match id fn with
-          | `any -> Any (List.map (parse ~loc) (arg_list loc args))
-          | `all -> All (List.map (parse ~loc) (arg_list loc args))
-          | `not -> Not (parse ~loc (one_arg loc args))
-          | `eq -> (
+          match fn with
+          | [%expr any] -> Any (List.map (parse ~loc) (arg_list loc args))
+          | [%expr all] -> All (List.map (parse ~loc) (arg_list loc args))
+          | [%expr not] -> Not (parse ~loc (one_arg loc args))
+          | [%expr ( = )] -> (
               match args with
               | [ x; y ] -> Pred { var = var loc x; value = value loc y }
               | _ -> fail ())
-          | `invalid -> fail ())
+          | _ -> fail ())
       | Pexp_ident { txt = Lident var; _ } ->
           Pred { var; value = String "true" }
       | _ -> fail ()
