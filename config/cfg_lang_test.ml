@@ -4,117 +4,14 @@ open Cfg_lang
 let keyword fmt = Spices.(default |> fg (color "#00FF00") |> build) fmt
 let error fmt = Spices.(default |> fg (color "#FF0000") |> build) fmt
 let loc = Location.none
-
-let () =
-  let test str expected =
-    let actual_str =
-      match Lexer.read ~loc str with
-      | exception Cfg_lang.Error { error; _ } ->
-          Format.sprintf "Exception: %S" error
-      | actual -> Format.asprintf "%a" Lexer.pp actual
-    in
-    let expect_str = Format.asprintf "%a" Lexer.pp expected in
-
-    if String.equal actual_str expect_str then
-      Format.printf "lexer test %S %s\r\n%!" str (keyword "OK")
-    else (
-      Format.printf "%s\n\nExpected:\n\n%a\n\nbut found:\n\n%s\n\n"
-        (error "Tokens do not match")
-        Lexer.pp expected actual_str;
-      assert false)
-  in
-
-  test "" [];
-  test "not" [ ATOM "not" ];
-  test "not any" [ ATOM "not"; ATOM "any" ];
-  test "(target_os = \"macos\")"
-    [ LPARENS; ATOM "target_os"; EQ; STRING "macos"; RPARENS ];
-  test "any (macos)" [ ATOM "any"; LPARENS; ATOM "macos"; RPARENS ];
-  test "all (target_os = \"macos\")"
-    [ ATOM "all"; LPARENS; ATOM "target_os"; EQ; STRING "macos"; RPARENS ];
-  test "any ((target_os = \"macos\"))"
-    [
-      ATOM "any";
-      LPARENS;
-      LPARENS;
-      ATOM "target_os";
-      EQ;
-      STRING "macos";
-      RPARENS;
-      RPARENS;
-    ];
-  test "any (architecture = 2112)"
-    [ ATOM "any"; LPARENS; ATOM "architecture"; EQ; NUMBER 2112; RPARENS ];
-  test "any (target_os = \"macos\", another)"
-    [
-      ATOM "any";
-      LPARENS;
-      ATOM "target_os";
-      EQ;
-      STRING "macos";
-      COMMA;
-      ATOM "another";
-      RPARENS;
-    ];
-  test
-    {|
-any
-    ( target_os = "macos",
-      target_os = "ios",
-      target_os = "watchos",
-      target_os = "tvos",
-      not(all(target_os = "freebsd",
-      target_os = "netbsd")),
-      target_os = "linux" )
-
-
-      |}
-    [
-      ATOM "any";
-      LPARENS;
-      ATOM "target_os";
-      EQ;
-      STRING "macos";
-      COMMA;
-      ATOM "target_os";
-      EQ;
-      STRING "ios";
-      COMMA;
-      ATOM "target_os";
-      EQ;
-      STRING "watchos";
-      COMMA;
-      ATOM "target_os";
-      EQ;
-      STRING "tvos";
-      COMMA;
-      ATOM "not";
-      LPARENS;
-      ATOM "all";
-      LPARENS;
-      ATOM "target_os";
-      EQ;
-      STRING "freebsd";
-      COMMA;
-      ATOM "target_os";
-      EQ;
-      STRING "netbsd";
-      RPARENS;
-      RPARENS;
-      COMMA;
-      ATOM "target_os";
-      EQ;
-      STRING "linux";
-      RPARENS;
-    ];
-
-  ()
+let parse_expression str = Parse.expression (Lexing.from_string str)
 
 let () =
   let open Parser in
   let test str expected =
     let actual_str =
-      match Parser.parse ~loc str with
+      let exp = parse_expression str in
+      match Parser.parse ~loc exp with
       | exception Cfg_lang.Error { error; _ } ->
           Format.sprintf "Exception: %S" error
       | actual -> Format.asprintf "%a" Parser.pp actual
@@ -195,7 +92,8 @@ any( (target_os = "macos"),
 let () =
   let test str env expected =
     let actual_str =
-      match Eval.eval ~loc ~env str with
+      let exp = parse_expression str in
+      match Eval.eval ~loc ~env exp with
       | exception Cfg_lang.Error { error; _ } ->
           Format.sprintf "Exception: %S" error
       | actual -> Format.asprintf "%b" actual

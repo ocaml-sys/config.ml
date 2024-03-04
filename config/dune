@@ -13,8 +13,8 @@
  (name cfg_lang)
  (modules cfg_lang)
  (preprocess
-  (pps sedlex.ppx ppxlib.metaquot))
- (libraries compiler-libs ppxlib sedlex spices))
+  (pps ppxlib.metaquot))
+ (libraries compiler-libs ppxlib spices))
 
 (test
  (package config)

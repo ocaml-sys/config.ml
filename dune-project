@@ -22,7 +22,6 @@
   (depends
     (ocaml (>= "5.1"))
     (ppxlib (>= 0.31.0))
-    (sedlex (>= "3.2"))
     (spices (>= "0.0.2"))
     dune)
   (tags (conditional compilation target_os target_arch arch os system)))
