@@ -121,6 +121,10 @@
   let () = Printf.printf "sys=%s env=%s" Sys.name Env.name
 
   $ dune clean
+  $ made_up=false dune exec ./main.exe
+  sys=unix env=unknown
+
+  $ dune clean
   $ dune exec ./main.exe
   sys=unix env=unknown
 
