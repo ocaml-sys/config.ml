@@ -1,2 +1,7 @@
 _build
 *.install
+_build
+# nix ignores
+.direnv
+result
+.envrc
