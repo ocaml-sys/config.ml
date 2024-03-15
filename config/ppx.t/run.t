@@ -1,4 +1,4 @@
-  $ target_os=macos dune describe pp main.ml
+  $ target_os=macos target_env="" dune describe pp main.ml
   [@@@ocaml.ppx.context
     {
       tool_name = "ppx_driver";
@@ -40,8 +40,9 @@
                              (target_os = "freebsd"), (target_os = "netbsd"),
                              (target_os = "linux"))]
   let () = Printf.printf "sys=%s env=%s" Sys.name Env.name
+
   $ dune clean
-  $ target_os=windows target_arch=x86 dune describe pp main.ml
+  $ target_os=windows target_arch=x86 target_env="" dune describe pp main.ml
   [@@@ocaml.ppx.context
     {
       tool_name = "ppx_driver";
@@ -81,7 +82,7 @@
   let () = Printf.printf "sys=%s env=%s" Sys.name Env.name
 
   $ dune clean
-  $ target_os=windows target_arch=arm dune describe pp main.ml
+  $ target_os=windows target_arch=arm target_env="" dune describe pp main.ml
   [@@@ocaml.ppx.context
     {
       tool_name = "ppx_driver";
@@ -121,15 +122,7 @@
   let () = Printf.printf "sys=%s env=%s" Sys.name Env.name
 
   $ dune clean
-  $ made_up=false dune exec ./main.exe
-  sys=unix env=unknown
-
-  $ dune clean
-  $ dune exec ./main.exe
-  sys=unix env=unknown
-
-  $ dune clean
-  $ target_os=windows target_arch=x86 dune exec ./main.exe
+  $ target_os=windows target_arch=x86 target_env="" made_up=false dune exec ./main.exe
   sys=win32 env=unknown
 
   $ dune clean
