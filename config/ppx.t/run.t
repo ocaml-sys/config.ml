@@ -122,7 +122,7 @@
   let () = Printf.printf "sys=%s env=%s" Sys.name Env.name
 
   $ dune clean
-  $ value=1 target_os=windows target_arch=x86 target_env="" dune exec ./main.exe
+  $ value=1 made_up=false target_os=windows target_arch=x86 target_env="" dune exec ./main.exe
   sys=win32 env=unknown
 
   $ dune clean
