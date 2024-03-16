@@ -2,6 +2,7 @@
   description = "Conditional compilation via attributes for OCaml";
 
   inputs.minttea.url = "github:leostera/minttea";
+  inputs.minttea.inputs.nixpkgs.follows = "nixpkgs";
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
   outputs = inputs@{ flake-parts, ... }:
