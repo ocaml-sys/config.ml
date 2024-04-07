@@ -12,6 +12,8 @@ let best_band_in_the_world x =
   match x with
   | Rush -> true
   | Yes -> false
+  | TheWho -> false
+  | Beatles -> false
   | KingCrimson -> false [@config (made_up = "false")]
 
 and worst_band_in_the_world = function 
