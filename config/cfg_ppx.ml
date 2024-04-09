@@ -109,8 +109,7 @@ let apply_config_on_types (tds : type_declaration list) =
 
 let apply_config_on_cases (cases : cases) =
   List.filter
-    (fun case ->
-      should_keep case.pc_rhs.pexp_attributes = `keep)
+    (fun case -> should_keep case.pc_rhs.pexp_attributes = `keep)
     cases
 
 let rec apply_config_on_expression (exp : expression) =
@@ -131,16 +130,15 @@ let rec apply_config_on_expression (exp : expression) =
         let cases = apply_config_on_cases cases in
         Pexp_function cases
     | Pexp_let (rec_flag, vbs, exp) ->
-      let exp = apply_config_on_expression exp in
-      Pexp_let (rec_flag, vbs, exp)
+        let exp = apply_config_on_expression exp in
+        Pexp_let (rec_flag, vbs, exp)
     | _ -> exp.pexp_desc
   in
   { exp with pexp_desc }
 
 let apply_config_on_value_bindings (vbs : value_binding list) =
   List.map
-    (fun vb ->
-      { vb with pvb_expr = apply_config_on_expression vb.pvb_expr })
+    (fun vb -> { vb with pvb_expr = apply_config_on_expression vb.pvb_expr })
     vbs
 
 let apply_config_on_structure_item stri =
