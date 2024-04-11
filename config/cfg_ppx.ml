@@ -107,6 +107,40 @@ let apply_config_on_types (tds : type_declaration list) =
       | _ -> Some td)
     tds
 
+let apply_config_on_cases (cases : cases) =
+  List.filter
+    (fun case -> should_keep case.pc_rhs.pexp_attributes = `keep)
+    cases
+
+let rec apply_config_on_expression (exp : expression) =
+  let pexp_desc =
+    match exp.pexp_desc with
+    | Pexp_try (exp, cases) ->
+        let exp = apply_config_on_expression exp in
+        let cases = apply_config_on_cases cases in
+        Pexp_try (exp, cases)
+    | Pexp_match (exp, cases) ->
+        let exp = apply_config_on_expression exp in
+        let cases = apply_config_on_cases cases in
+        Pexp_match (exp, cases)
+    | Pexp_fun (arg_label, exp_opt, pat, exp) ->
+        let exp = apply_config_on_expression exp in
+        Pexp_fun (arg_label, exp_opt, pat, exp)
+    | Pexp_function cases ->
+        let cases = apply_config_on_cases cases in
+        Pexp_function cases
+    | Pexp_let (rec_flag, vbs, exp) ->
+        let exp = apply_config_on_expression exp in
+        Pexp_let (rec_flag, vbs, exp)
+    | _ -> exp.pexp_desc
+  in
+  { exp with pexp_desc }
+
+let apply_config_on_value_bindings (vbs : value_binding list) =
+  List.map
+    (fun vb -> { vb with pvb_expr = apply_config_on_expression vb.pvb_expr })
+    vbs
+
 let apply_config_on_structure_item stri =
   try
     match stri.pstr_desc with
@@ -119,9 +153,10 @@ let apply_config_on_structure_item stri =
     | Pstr_eval (_, attrs)
     | Pstr_module { pmb_attributes = attrs; _ } ->
         if should_keep attrs = `keep then Some stri else None
-    | Pstr_value (_, vbs) ->
+    | Pstr_value (recflag, vbs) ->
         if should_keep_many vbs (fun vb -> vb.pvb_attributes) = `keep then
-          Some stri
+          let vbs = apply_config_on_value_bindings vbs in
+          Some { stri with pstr_desc = Pstr_value (recflag, vbs) }
         else None
     | Pstr_type (recflag, tds) ->
         if should_keep_many tds (fun td -> td.ptype_attributes) = `keep then
