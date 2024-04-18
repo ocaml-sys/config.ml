@@ -90,6 +90,12 @@ end
 
 include Pro_mode_env
 [@@config (project_mode = "pro")]
+
+module A : sig
+  val name : string [@@cfg (project_mode = "pro")]
+end  =  struct
+  let name = "Product" [@@cfg (project_mode = "pro")]
+end 
 ```
 
 ### Enabling/Disabling Let definitions
@@ -124,11 +130,23 @@ type favorite_bands =
   | Yes
   | KingCrimson [@config (likes_trumpets = true)]
 
+let is_favorite x =
+  match x with
+  | Rush -> true
+  | Yes -> false
+  | KingCrimson -> false [@config (likes_trumpets = true)]
+
 type has_published_album_recently = 
   [ `nope
   | `yes
   | `maybe [@config (is_indecisive = true)]
   ]
+
+let get_has_published (x: has_published_album_recently) =
+  match x with
+  | `nope -> true
+  | `yes -> false
+  | `maybe -> false [@config (is_indecisive = true)]
 ```
 
 ### Enabling/Disabling Record Fields
