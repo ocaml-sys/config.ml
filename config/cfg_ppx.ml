@@ -199,7 +199,7 @@ let apply_config_on_structure_item stri =
     | Pstr_eval (_, attrs) ->
         if should_keep attrs = `keep then Some stri else None
     | Pstr_modtype { pmtd_attributes; pmtd_name; pmtd_type; pmtd_loc } ->
-        if should_keep pmtd_attributes = `keep then (
+        if should_keep pmtd_attributes = `keep then
           match pmtd_type with
           | None -> Some stri
           | Some pmtd_type ->
@@ -210,7 +210,7 @@ let apply_config_on_structure_item stri =
                   pstr_desc =
                     Pstr_modtype
                       { pmtd_attributes; pmtd_name; pmtd_type; pmtd_loc };
-                })
+                }
         else None
     | Pstr_module { pmb_expr; pmb_name; pmb_attributes; pmb_loc } ->
         if should_keep pmb_attributes = `keep then
