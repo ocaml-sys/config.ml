@@ -168,16 +168,16 @@
       unsafe_string = false;
       cookies = []
     }]
-  module type M  =
+  module type A  =
     sig
       val best_band_in_the_world : string[@@cfg value = "1"]
       val get_upper_case_band_name : string -> string[@@cfg value = "1"]
     end
-  module O : M =
+  module B : A =
     struct
       let best_band_in_the_world = "RUSH"[@@cfg value = "1"]
       let get_upper_case_band_name name = name[@@cfg value = "1"]
     end 
-  module N : sig val best_band_in_the_world : string[@@cfg value = "1"] end =
+  module C : sig val best_band_in_the_world : string[@@cfg value = "1"] end =
     struct let best_band_in_the_world = "RUSH"[@@cfg value = "1"] end 
-  let rush () = N.best_band_in_the_world
+  let rush () = C.best_band_in_the_world
