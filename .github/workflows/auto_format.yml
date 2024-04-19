@@ -1,0 +1,34 @@
+name: Check Code Format
+
+on:
+  pull_request:
+  push:
+
+permissions: read-all
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout tree
+        uses: actions/checkout@v4
+
+      - name: Set-up OCaml
+        uses: ocaml/setup-ocaml@v2
+        with:
+          ocaml-compiler: "5.1"
+          allow-prerelease-opam: true
+          opam-repositories: | 
+            default: https://github.com/ocaml/opam-repository.git
+
+      - run: opam install . --deps-only --with-test
+
+      - run: opam exec -- dune fmt
+        id: format_result
+        continue-on-error: true
+
+      - run: echo "❌ | Code not formatted" && exit 1
+        if: steps.format_result.outcome == 'failure'
+      
+      - run: echo "✅ | Code is formatted"
