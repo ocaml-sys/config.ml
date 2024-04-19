@@ -42,8 +42,6 @@ jobs:
       - name: Set-up OCaml
         uses: ocaml/setup-ocaml@v2
         with:
-          dune-cache: true
-          cache-prefix: dune-cache-${{ matrix.os }}-${{ matrix.ocaml-compiler }}
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
           allow-prerelease-opam: ${{ matrix.allow-prerelease-opam }}
           opam-repositories: ${{ matrix.opam-repositories }}
