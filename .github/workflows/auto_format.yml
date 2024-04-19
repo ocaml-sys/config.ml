@@ -22,13 +22,4 @@ jobs:
           opam-repositories: | 
             default: https://github.com/ocaml/opam-repository.git
 
-      - run: opam install . --deps-only --with-test
-
-      - run: opam exec -- dune fmt
-        id: format_result
-        continue-on-error: true
-
-      - run: echo "❌ | Code not formatted" && exit 1
-        if: steps.format_result.outcome == 'failure'
-      
-      - run: echo "✅ | Code is formatted"
+      - uses: ocaml/setup-ocaml/lint-fmt@v2
