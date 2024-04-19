@@ -8,7 +8,8 @@ type error = { loc : Location.t; error : string }
 
 exception Error of error
 
-let failwith ~loc error = raise (Error { loc; error = error ^ "\n" })
+let failwith ~loc error = 
+  raise (Error { loc; error = error ^ "\n" })
 
 (* let log = Printf.printf *)
 
