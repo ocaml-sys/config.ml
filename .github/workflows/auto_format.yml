@@ -18,6 +18,7 @@ jobs:
         uses: ocaml/setup-ocaml@v2
         with:
           ocaml-compiler: "5.1"
+          dune-cache: true
           allow-prerelease-opam: true
           opam-repositories: | 
             default: https://github.com/ocaml/opam-repository.git
