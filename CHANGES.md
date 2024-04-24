@@ -1,6 +1,11 @@
-# Changes
+# 0.0.3 
 
-## 0.0.2
+* Refactored expression evaluation – thanks @gpetiot :clap:
+* Support conditionally disabling match cases, function branches, module structure and signature items – thank @kfoxder :sparkles:
+* Updated cookbook with more examples
+* Improvements on nix setup – thanks @metame :rainbow:
+
+# 0.0.2
 
 * Fix single var configuration failing – thanks @metame 👏 
 * Support conditionally disabling all structure-items
@@ -8,7 +13,7 @@
 * Add better docs for the Config language, and a small cookbook
 * Support `cfg` and `config` for use in Melange v3 and future version
 
-## 0.0.1
+# 0.0.1
 
 Initial release with support for:
 
