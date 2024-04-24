@@ -148,3 +148,36 @@
       cookies = []
     }]
   external foo : unit -> int = "made_up_call"
+
+  $ dune clean
+  $ value=1 target_os=madeup dune describe pp cond_module.ml
+  [@@@ocaml.ppx.context
+    {
+      tool_name = "ppx_driver";
+      include_dirs = [];
+      load_path = [];
+      open_modules = [];
+      for_package = None;
+      debug = false;
+      use_threads = false;
+      use_vmthreads = false;
+      recursive_types = false;
+      principal = false;
+      transparent_modules = false;
+      unboxed_types = false;
+      unsafe_string = false;
+      cookies = []
+    }]
+  module type A  =
+    sig
+      val best_band_in_the_world : string[@@cfg value = "1"]
+      val get_upper_case_band_name : string -> string[@@cfg value = "1"]
+    end
+  module B : A =
+    struct
+      let best_band_in_the_world = "RUSH"[@@cfg value = "1"]
+      let get_upper_case_band_name name = name[@@cfg value = "1"]
+    end 
+  module C : sig val best_band_in_the_world : string[@@cfg value = "1"] end =
+    struct let best_band_in_the_world = "RUSH"[@@cfg value = "1"] end 
+  let rush () = C.best_band_in_the_world

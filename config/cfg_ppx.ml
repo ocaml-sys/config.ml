@@ -34,8 +34,8 @@ let eval_attr attr =
     (* Printf.printf "\n\nattr name: %S\n\n" attr.attr_name.txt; *)
     match attr.attr_payload with
     | PStr [ { pstr_desc = Pstr_eval (e, []); _ } ] ->
-        (* let e = Pprintast.string_of_expression e in *)
-        (* Printf.printf "\n\npayload: %S\n\n" e; *)
+        (* let e_ = Pprintast.string_of_expression e in *)
+        (* Printf.printf "\n\npayload: %S\n\n" e_; *)
         if Cfg_lang.eval ~loc ~env e then `keep else `drop
     | _ -> `keep
 
@@ -137,22 +137,91 @@ let rec apply_config_on_expression (exp : expression) =
   { exp with pexp_desc }
 
 let apply_config_on_value_bindings (vbs : value_binding list) =
-  List.map
-    (fun vb -> { vb with pvb_expr = apply_config_on_expression vb.pvb_expr })
+  List.filter_map
+    (fun vb ->
+      if should_keep vb.pvb_attributes = `keep then
+        Some { vb with pvb_expr = apply_config_on_expression vb.pvb_expr }
+      else None)
     vbs
+
+let apply_config_on_signature_items sig_items =
+  List.filter_map
+    (fun sig_item ->
+      match sig_item.psig_desc with
+      | Psig_value val_desc ->
+          if should_keep val_desc.pval_attributes = `keep then Some sig_item
+          else None
+      | Psig_type (rec_flag, tds) ->
+          let tds = apply_config_on_types tds in
+          if List.length tds = 0 then None
+          else Some { sig_item with psig_desc = Psig_type (rec_flag, tds) }
+      | _ -> Some sig_item)
+    sig_items
+
+let apply_config_on_module_type mod_type =
+  match mod_type.pmty_desc with
+  | Pmty_signature signature_items ->
+      let signature_items = apply_config_on_signature_items signature_items in
+      { mod_type with pmty_desc = Pmty_signature signature_items }
+  | _ -> mod_type
+
+let rec apply_config_on_module_expr mod_expr =
+  match mod_expr.pmod_desc with
+  | Pmod_apply _ | Pmod_unpack _ | Pmod_extension _ | Pmod_ident _
+  | Pmod_functor _ ->
+      mod_expr
+  | Pmod_structure structs ->
+      let new_structs =
+        List.filter_map
+          (fun stri ->
+            match stri.pstr_desc with
+            | Pstr_value (rec_flag, vbs) ->
+                let vbs = apply_config_on_value_bindings vbs in
+                if List.length vbs = 0 then None
+                else Some { stri with pstr_desc = Pstr_value (rec_flag, vbs) }
+            | _ -> Some stri)
+          structs
+      in
+      { mod_expr with pmod_desc = Pmod_structure new_structs }
+  | Pmod_constraint (module_expr, module_type) ->
+      let module_expr = apply_config_on_module_expr module_expr in
+      let module_type = apply_config_on_module_type module_type in
+      { mod_expr with pmod_desc = Pmod_constraint (module_expr, module_type) }
 
 let apply_config_on_structure_item stri =
   try
     match stri.pstr_desc with
     | Pstr_typext { ptyext_attributes = attrs; _ }
-    | Pstr_modtype { pmtd_attributes = attrs; _ }
     | Pstr_open { popen_attributes = attrs; _ }
     | Pstr_include { pincl_attributes = attrs; _ }
     | Pstr_exception { ptyexn_attributes = attrs; _ }
     | Pstr_primitive { pval_attributes = attrs; _ }
-    | Pstr_eval (_, attrs)
-    | Pstr_module { pmb_attributes = attrs; _ } ->
+    | Pstr_eval (_, attrs) ->
         if should_keep attrs = `keep then Some stri else None
+    | Pstr_modtype { pmtd_attributes; pmtd_name; pmtd_type; pmtd_loc } ->
+        if should_keep pmtd_attributes = `keep then
+          match pmtd_type with
+          | None -> Some stri
+          | Some pmtd_type ->
+              let pmtd_type = Some (apply_config_on_module_type pmtd_type) in
+              Some
+                {
+                  stri with
+                  pstr_desc =
+                    Pstr_modtype
+                      { pmtd_attributes; pmtd_name; pmtd_type; pmtd_loc };
+                }
+        else None
+    | Pstr_module { pmb_expr; pmb_name; pmb_attributes; pmb_loc } ->
+        if should_keep pmb_attributes = `keep then
+          let pmb_expr = apply_config_on_module_expr pmb_expr in
+          Some
+            {
+              stri with
+              pstr_desc =
+                Pstr_module { pmb_expr; pmb_name; pmb_attributes; pmb_loc };
+            }
+        else None
     | Pstr_value (recflag, vbs) ->
         if should_keep_many vbs (fun vb -> vb.pvb_attributes) = `keep then
           let vbs = apply_config_on_value_bindings vbs in
