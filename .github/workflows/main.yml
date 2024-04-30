@@ -48,6 +48,9 @@ jobs:
 
       - run: opam install . --deps-only --with-test
 
+      # Needed for dune fmt
+      - run: opam install ocamlformat=0.26.1
+
       - run: opam exec -- dune fmt
 
       - run: opam exec -- dune build
